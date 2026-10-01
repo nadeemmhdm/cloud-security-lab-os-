@@ -17,13 +17,15 @@ def start(user,lab):
  env=prepare(user,lab)
  d[key]={"id":secrets.token_hex(8),"lab":lab,"user":user,"provider":"local","mode":get(lab)["mode"],"workspace":env["workspace"],"status":"active","started":datetime.now(timezone.utc).isoformat()}
  _save(d); return d[key]
+def active(user,lab):
+ return _load().get(user+":"+lab,{}).get("status")=="active"
 def stop(user,lab):
  d=_load(); key=user+":"+lab
- if key not in d: raise ValueError("Lab session not found")
+ if key not in d or d[key].get("status")!="active": raise ValueError("Active lab session not found")
  d[key]["status"]="completed"; d[key]["completed"]=datetime.now(timezone.utc).isoformat(); _save(d); return d[key]
 def reset(user,lab):
  if not get(lab): raise ValueError("Unknown lab")
- p=workspace(user,lab)
+ p=workspace(user,lab,False)
  if p.exists(): shutil.rmtree(p)
  d=_load(); d.pop(user+":"+lab,None); _save(d)
  return {"ok":True,"lab":lab}

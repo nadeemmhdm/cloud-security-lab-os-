@@ -15,3 +15,8 @@ def _save(d):
 def all_for(user): return _load().get(user,{})
 def set_result(user,lab,result):
  d=_load(); d.setdefault(user,{})[lab]={"passed":bool(result.get("passed")),"updated":datetime.now(timezone.utc).isoformat()}; _save(d); return d[user][lab]
+def passed(user,lab): return bool(_load().get(user,{}).get(lab,{}).get("passed"))
+def clear(user,lab):
+ d=_load()
+ if user in d:d[user].pop(lab,None)
+ _save(d)

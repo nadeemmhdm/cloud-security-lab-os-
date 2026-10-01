@@ -16,9 +16,9 @@ from .errors import payload
 from .ai import status as ai_status,configure as ai_configure,remove as ai_remove,help_answer
 from .booster import status as booster_status,boost as booster_enable,normal as booster_normal
 from .labs import catalog as lab_catalog,verify as lab_verify
-from .progress import all_for as lab_progress,set_result as lab_set_result
+from .progress import all_for as lab_progress,set_result as lab_set_result,passed as lab_passed,clear as lab_clear
 from .lab_access import configure as lab_configure,assign as lab_assign,allowed as lab_allowed,assigned as lab_assigned,state as lab_access_state
-from .lab_runtime import start as lab_start,stop as lab_stop,reset as lab_reset,sessions as lab_sessions
+from .lab_runtime import start as lab_start,stop as lab_stop,reset as lab_reset,sessions as lab_sessions,active as lab_active
 from .platform_info import detect as platform_detect
 
 router=APIRouter(prefix="/api")
@@ -270,6 +270,7 @@ def start_lab(lab_id:str,req:Request):
 def complete_lab(lab_id:str,req:Request):
  user=require(req,"labs.run"); admin=user.get("role") in ("owner","admin")
  if not lab_allowed(user["username"],lab_id,admin): fail(403,"PERM-001")
+ if not lab_passed(user["username"],lab_id): fail(409,"LAB-002","Lab must pass verification before completion")
  try:r=lab_stop(user["username"],lab_id)
  except ValueError as e: fail(404,"LAB-001",str(e))
  record("lab.complete",f"{user['username']}:{lab_id}"); return r
@@ -280,6 +281,7 @@ def reset_lab(lab_id:str,req:Request):
  if not lab_allowed(user["username"],lab_id,admin): fail(403,"PERM-001")
  try:r=lab_reset(user["username"],lab_id)
  except ValueError as e: fail(404,"LAB-001",str(e))
+ lab_clear(user["username"],lab_id)
  record("lab.reset",f"{user['username']}:{lab_id}"); return r
 
 @router.get("/labs/sessions")
@@ -295,6 +297,7 @@ def get_lab_progress(req:Request):
 def verify_lab(lab_id:str,req:Request):
  user=require(req,"labs.run"); admin=user.get("role") in ("owner","admin")
  if not lab_allowed(user["username"],lab_id,admin): fail(403,"PERM-001","Lab is disabled or not assigned")
+ if not lab_active(user["username"],lab_id): fail(409,"LAB-002","Start the lab before verification")
  try:r=lab_verify(lab_id,user["username"])
  except ValueError as e: fail(404,"LAB-001",str(e))
  lab_set_result(user["username"],lab_id,r)

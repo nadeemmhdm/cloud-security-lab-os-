@@ -20,7 +20,7 @@ from .runtime import prepare_integrations
 from .auth import ensure_admin
 
 app = typer.Typer(no_args_is_help=True, help="Cloud OS management CLI")
-REPO = "nadeemmhdm/cloud-os"
+REPO = "nadeemmhdm/cloud-security-lab-os-"
 REPO_DIR = Path(os.getenv("CLOUD_OS_SOURCE", "/opt/cloud-os" if os.name != "nt" else str(Path(os.getenv("ProgramData", "C:/ProgramData")) / "CloudOs")))
 
 

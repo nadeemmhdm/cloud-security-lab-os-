@@ -9,6 +9,8 @@ DEFAULT_ROLES={
  "owner":["*"],
  "admin":["files.read","files.write","terminal","backups","network","audit","teams.manage","settings","labs.read","labs.run","labs.manage"],
  "operator":["files.read","files.write","terminal","backups","network","labs.read","labs.run"],
+ "instructor":["files.read","files.write","labs.read","labs.run","labs.manage","audit"],
+ "student":["files.read","files.write","labs.read","labs.run"],
  "member":["files.read","files.write","labs.read","labs.run"],
  "viewer":["files.read","labs.read"]
 }

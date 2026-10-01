@@ -1,4 +1,5 @@
 name: Deploy documentation site
+# Single authoritative GitHub Pages workflow
 on:
   push:
     branches: [main]

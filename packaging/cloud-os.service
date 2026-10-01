@@ -1,22 +1,23 @@
 [Unit]
-Description=Cloud Os personal cloud server
+Description=Cloud Security Lab OS
 After=network-online.target
 Wants=network-online.target
 
-# SECURITY: This template is intentionally not auto-installed.
-# A production service must run as a dedicated unprivileged Cloud OS user,
-# with explicit CLOUD_OS_HOME/CLOUD_OS_SOURCE paths and restricted filesystem access.
-# Do not run the web terminal as root.
-
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/cloud-os start
-Restart=on-failure
+User=cloudos
+Group=cloudos
+Environment=CLOUD_OS_HOME=/var/lib/cloud-os
+Environment=CLOUD_OS_SOURCE=/opt/cloud-security-lab-os
+WorkingDirectory=/opt/cloud-security-lab-os
+ExecStart=/opt/cloud-security-lab-os/.venv/bin/cloud-os start
+Restart=always
 RestartSec=5
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
+ReadWritePaths=/var/lib/cloud-os
 
 [Install]
 WantedBy=multi-user.target

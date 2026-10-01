@@ -18,6 +18,8 @@ from .booster import status as booster_status,boost as booster_enable,normal as 
 from .labs import catalog as lab_catalog,verify as lab_verify
 from .progress import all_for as lab_progress,set_result as lab_set_result
 from .cloud_providers import status as cloud_status
+from .lab_access import configure as lab_configure,assign as lab_assign,allowed as lab_allowed,assigned as lab_assigned,state as lab_access_state
+from .lab_runtime import start as lab_start,stop as lab_stop,sessions as lab_sessions
 
 router=APIRouter(prefix="/api")
 SAFE_METHODS={"GET","HEAD","OPTIONS"}
@@ -32,6 +34,8 @@ class PathBody(BaseModel): path:str
 class AIConfig(BaseModel): provider:str; api_key:str; model:str=""
 class AIAsk(BaseModel): provider:str; prompt:str
 class BoostBody(BaseModel): enabled:bool=True
+class LabConfigBody(BaseModel): enabled:bool=True
+class LabAssignBody(BaseModel): username:str; allowed:bool=True
 
 def token(req:Request): return req.cookies.get("cloudos_session","")
 
@@ -232,7 +236,49 @@ def get_cloud_status(req:Request):
 
 @router.get("/labs")
 def get_labs(req:Request):
- require(req,"labs.read"); return lab_catalog()
+ user=require(req,"labs.read")
+ admin=user.get("role") in ("owner","admin")
+ ids=set(lab_assigned(user["username"],admin))
+ return [x for x in lab_catalog() if x["id"] in ids]
+
+@router.get("/labs/admin/access")
+def get_lab_access(req:Request):
+ require(req,"labs.manage"); return lab_access_state()
+
+@router.post("/labs/admin/{lab_id}/configure")
+def configure_lab(lab_id:str,body:LabConfigBody,req:Request):
+ require(req,"labs.manage")
+ if not any(x["id"]==lab_id for x in lab_catalog()): fail(404,"LAB-001")
+ result=lab_configure(lab_id,body.enabled); record("lab.configure",f"{lab_id}:enabled={result}"); return {"lab":lab_id,"enabled":result}
+
+@router.post("/labs/admin/{lab_id}/assign")
+def assign_lab(lab_id:str,body:LabAssignBody,req:Request):
+ require(req,"labs.manage")
+ if not any(x["id"]==lab_id for x in lab_catalog()): fail(404,"LAB-001")
+ if body.username not in {x["username"] for x in users()}: fail(400,"USER-001","Unknown user")
+ result=lab_assign(body.username,lab_id,body.allowed); record("lab.assign",f"{body.username}:{lab_id}:{body.allowed}"); return {"username":body.username,"labs":result}
+
+@router.post("/labs/{lab_id}/start")
+def start_lab(lab_id:str,req:Request):
+ user=require(req,"labs.run"); admin=user.get("role") in ("owner","admin")
+ if not lab_allowed(user["username"],lab_id,admin): fail(403,"PERM-001","Lab is disabled or not assigned")
+ try:r=lab_start(user["username"],lab_id)
+ except ValueError as e: fail(404,"LAB-001",str(e))
+ except RuntimeError as e: fail(503,"CLOUD-001",str(e))
+ record("lab.start",f"{user['username']}:{lab_id}"); return r
+
+@router.post("/labs/{lab_id}/complete")
+def complete_lab(lab_id:str,req:Request):
+ user=require(req,"labs.run"); admin=user.get("role") in ("owner","admin")
+ if not lab_allowed(user["username"],lab_id,admin): fail(403,"PERM-001")
+ try:r=lab_stop(user["username"],lab_id)
+ except ValueError as e: fail(404,"LAB-001",str(e))
+ record("lab.complete",f"{user['username']}:{lab_id}"); return r
+
+@router.get("/labs/sessions")
+def get_lab_sessions(req:Request):
+ user=require(req,"labs.read")
+ return lab_sessions(None if user.get("role") in ("owner","admin") else user["username"])
 
 @router.get("/labs/progress")
 def get_lab_progress(req:Request):
@@ -240,7 +286,8 @@ def get_lab_progress(req:Request):
 
 @router.post("/labs/{lab_id}/verify")
 def verify_lab(lab_id:str,req:Request):
- user=require(req,"labs.run")
+ user=require(req,"labs.run"); admin=user.get("role") in ("owner","admin")
+ if not lab_allowed(user["username"],lab_id,admin): fail(403,"PERM-001","Lab is disabled or not assigned")
  try:r=lab_verify(lab_id)
  except ValueError as e: fail(404,"LAB-001",str(e))
  except RuntimeError as e: fail(503,"CLOUD-001",str(e))

@@ -24,6 +24,8 @@ ERRORS={
  "TEAM-001":ErrorInfo("TEAM-001","Team operation failed.","Check the team, user and requested role."),
  "DB-001":ErrorInfo("DB-001","Access database is unreadable or corrupt.","Restore access.json from a trusted backup or repair it locally before restarting Cloud OS."),
  "BACKUP-001":ErrorInfo("BACKUP-001","Backup operation failed.","Check storage space and Cloud OS data-directory permissions."),
+ "LAB-001":ErrorInfo("LAB-001","Lab was not found.","Refresh the lab catalog and retry."),
+ "CLOUD-001":ErrorInfo("CLOUD-001","Cloud provider is unavailable.","Install and authenticate the required AWS or Azure CLI on the Cloud OS host."),
  "SYS-001":ErrorInfo("SYS-001","Internal Cloud OS error.","Check the audit/server log and run cloud-os doctor.")
 }
 

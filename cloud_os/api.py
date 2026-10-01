@@ -15,6 +15,9 @@ from .config import load
 from .errors import payload
 from .ai import status as ai_status,configure as ai_configure,remove as ai_remove,help_answer
 from .booster import status as booster_status,boost as booster_enable,normal as booster_normal
+from .labs import catalog as lab_catalog,verify as lab_verify
+from .progress import all_for as lab_progress,set_result as lab_set_result
+from .cloud_providers import status as cloud_status
 
 router=APIRouter(prefix="/api")
 SAFE_METHODS={"GET","HEAD","OPTIONS"}
@@ -221,4 +224,26 @@ def set_booster(body:BoostBody,req:Request):
  user=require(req,"settings")
  r=booster_enable() if body.enabled else booster_normal()
  record("booster.change",f"{user['username']}:enabled={body.enabled}:applied={r.get('applied',False)}")
+ return r
+
+@router.get("/cloud/status")
+def get_cloud_status(req:Request):
+ require(req,"labs.run"); return cloud_status()
+
+@router.get("/labs")
+def get_labs(req:Request):
+ require(req,"labs.read"); return lab_catalog()
+
+@router.get("/labs/progress")
+def get_lab_progress(req:Request):
+ user=require(req,"labs.read"); return lab_progress(user["username"])
+
+@router.post("/labs/{lab_id}/verify")
+def verify_lab(lab_id:str,req:Request):
+ user=require(req,"labs.run")
+ try:r=lab_verify(lab_id)
+ except ValueError as e: fail(404,"LAB-001",str(e))
+ except RuntimeError as e: fail(503,"CLOUD-001",str(e))
+ lab_set_result(user["username"],lab_id,r)
+ record("lab.verify",f"{user['username']}:{lab_id}:passed={r['passed']}")
  return r

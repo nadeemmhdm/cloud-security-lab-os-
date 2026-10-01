@@ -7,10 +7,10 @@ DB=APP_DIR/"access.json"
 NAME_RE=re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 DEFAULT_ROLES={
  "owner":["*"],
- "admin":["files.read","files.write","terminal","backups","network","audit","teams.manage","settings"],
- "operator":["files.read","files.write","terminal","backups","network"],
- "member":["files.read","files.write"],
- "viewer":["files.read"]
+ "admin":["files.read","files.write","terminal","backups","network","audit","teams.manage","settings","labs.read","labs.run","labs.manage"],
+ "operator":["files.read","files.write","terminal","backups","network","labs.read","labs.run"],
+ "member":["files.read","files.write","labs.read","labs.run"],
+ "viewer":["files.read","labs.read"]
 }
 
 def _load():

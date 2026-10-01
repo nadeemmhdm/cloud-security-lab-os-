@@ -25,7 +25,7 @@ def test_password_minimum(isolated):
 def test_role_permissions(isolated):
     import cloud_os.teams as teams
     teams.create_user("viewer1","correct-horse-battery","Viewer","viewer")
-    assert teams.permissions("viewer1")==["files.read"]
+    assert teams.permissions("viewer1")==["files.read","labs.read"]
 
 def test_reserved_admin_username(isolated):
     import cloud_os.teams as teams

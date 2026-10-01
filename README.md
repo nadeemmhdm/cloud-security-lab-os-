@@ -1,56 +1,44 @@
 # Cloud Security Lab OS
 
-A self-hosted cloud-security learning workstation built directly on the original Cloud OS codebase.
+Cloud Security Lab OS turns a Windows 10/11 or Ubuntu computer into a self-hosted security lab server. The application runs on the owner's machine; Cloudflare Tunnel can provide worldwide access without requiring AWS/Azure hosting.
 
-## What is real
-Cloud Security Lab OS runs real host commands and reads real AWS/Azure accounts through the official AWS CLI and Azure CLI already authenticated on the host. The application does not contain fake cloud-resource simulators and does not commit provider credentials.
+## Access model
+Owner/Admin creates users, enables labs and assigns access. Users can see/run only enabled labs assigned to them. Lab workspaces and progress are separated per user. Host terminal privileges are not granted to student accounts by default.
 
-## Included curriculum
-- AWS IAM: users, roles, policies, least privilege, access keys and misconfiguration review
-- AWS VPC: subnets, security groups, NACLs, exposure and monitoring
-- AWS EC2: open ports, patching, metadata, containers and hardening
-- AWS S3: public access, permissions, encryption, data protection and snapshots
-- Microsoft Entra ID, Azure IAM, networking, storage, compute and monitoring
-- Microsoft Sentinel: SIEM, ingestion, detection rules, alerts and incident investigation
-- KQL security analysis
-- Microsoft Defender XDR investigation topics
+## Curriculum
+The lab catalog contains Modules 1–9: Cloud Security Fundamentals, AWS Identity & Access Security, AWS Network Security, AWS Compute Security, AWS Storage & Data Security, Microsoft Azure Security, Microsoft Sentinel & SIEM, KQL for Security Analysis and Microsoft Defender XDR.
 
-## Provider setup
-Install AWS CLI and authenticate it using an appropriate lab account/role. Install Azure CLI and authenticate with `az login`. Use dedicated training subscriptions/accounts and least-privilege identities. Cloud provider charges and quotas remain the operator's responsibility.
+AWS/Microsoft product names are retained to map the supplied curriculum. Without those external proprietary services, the self-hosted exercises are explicitly labelled local practical equivalents; the application does not claim to be AWS/Azure/Sentinel/Defender.
 
-The dashboard/server credentials are separate from cloud-provider credentials. Never commit AWS access keys, Azure tokens, service-principal secrets, private keys, or Cloudflare tokens.
-
-## One-command setup
+## Setup
 Python 3.10+ is required.
 
-Windows PowerShell:
+Windows:
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\install.ps1
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+.\.venv\Scripts\cloud-os.exe setup
+.\.venv\Scripts\cloud-os.exe start
 ```
 
-Linux / Ubuntu / WSL:
+Ubuntu/Linux:
 ```bash
-bash install.sh
+bash setup.sh
+.venv/bin/cloud-os setup
+.venv/bin/cloud-os start
 ```
 
-Detailed setup: `docs/SETUP.md`. Practical solutions: `docs/AWS_LABS.md` and `docs/AZURE_SENTINEL_KQL_DEFENDER_LABS.md`. Real PowerShell/Bash behavior: `docs/TERMINAL.md`.
+No AWS CLI or Azure CLI is required for the self-hosted runtime.
 
-## Manual run
+## Lab guides
+See [docs/labs/README.md](docs/labs/README.md) for all nine step-by-step solution guides, Windows/Ubuntu commands, expected results, verification and reset instructions.
 
-```bash
-python -m venv .venv
-python -m pip install -e ".[test]"
-cloud-os setup
-cloud-os start
-```
-
-Then sign in to Cloud OS. `GET /api/cloud/status` reports whether the provider CLIs are installed/authenticated. `GET /api/labs` exposes the curriculum and `POST /api/labs/{lab_id}/verify` performs real read-only provider verification.
-
-## Security boundary
-The existing Cloud OS host terminal is powerful and executes with the privileges of the Cloud OS process. Only trusted users should receive terminal access. Lab verification is intentionally read-only; resource creation/deletion should be performed deliberately with official provider tools in a dedicated training account.
+## Worldwide access
+See [docs/WORLDWIDE_ACCESS.md](docs/WORLDWIDE_ACCESS.md). Keep Cloud OS bound to loopback and publish approved services through authenticated Cloudflare routes. Tunnel credentials are deployment secrets and must never be committed.
 
 ## Testing
 ```bash
 python -m compileall -q cloud_os
 pytest -q
 ```
+
+The test suite validates application behavior on Windows and Ubuntu GitHub runners. A passing CI run validates the implemented software checks; it does not certify proprietary cloud services that are not part of this self-hosted runtime.

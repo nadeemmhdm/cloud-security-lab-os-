@@ -1,18 +1,52 @@
-# Azure, Sentinel, KQL and Defender XDR Practical Labs — Complete Solve Guide
+# Azure, Sentinel, KQL and Defender XDR Practical Labs
 
-Use only a Microsoft tenant/subscription you own or are authorized to administer. Licensing and permissions determine which Sentinel and Defender XDR exercises are available.
+Use only a tenant/subscription/workspace you own or are authorized to administer. Licensing and permissions determine which Sentinel and Defender XDR features are available.
 
 ## Module 6 — Microsoft Azure Security
-Authenticate: `az login`; confirm subscription: `az account show`. Use a dedicated resource group: `az group create --name cslab-rg --location centralindia`. Review role assignments with `az role assignment list --all`. Review NSGs with `az network nsg list -g cslab-rg`, storage accounts with `az storage account list -g cslab-rg`, VMs with `az vm list -g cslab-rg -d`, and monitoring configuration with Azure Monitor commands appropriate to your workspace. Apply least privilege and avoid public management ports. Delete the dedicated resource group after all exercises if it contains only disposable lab resources: `az group delete --name cslab-rg --yes --no-wait`.
+1. Authenticate: `az login`.
+2. Confirm subscription: `az account show`; select the dedicated training subscription if needed.
+3. Inventory resource groups: `az group list`.
+4. Review Entra identities and Azure RBAC assignments used by the lab.
+5. Inspect VNets/NSGs and remove unnecessary broad inbound exposure.
+6. Review the lab storage account for network access, encryption and access configuration.
+7. Review lab VM networking, identity, disk/security configuration and monitoring.
+8. Run Azure Security Verify.
 
 ## Module 7 — Microsoft Sentinel & SIEM
-Use an authorized Log Analytics workspace with Microsoft Sentinel enabled. Connect approved data sources, confirm ingestion in the workspace, create detection/analytics rules for your own test telemetry, review generated alerts, and investigate incidents in Sentinel. Do not manufacture production incidents or connect data you are not authorized to process. Cloud Security Lab OS verifies Azure connectivity; Sentinel availability still depends on workspace configuration, RBAC and licensing.
+1. Use an authorized Log Analytics workspace with Microsoft Sentinel enabled.
+2. Confirm required data connectors are configured for the course exercise.
+3. Verify log ingestion in the workspace.
+4. Review analytics/detection rules and resulting alerts.
+5. Open a lab incident, inspect entities/evidence/timeline, document findings and close/update it according to the exercise.
+6. Do not manufacture incident results in Cloud Security Lab OS; the workspace is the source of truth.
 
 ## Module 8 — KQL for Security Analysis
-Run KQL against the real Log Analytics/Sentinel workspace. Start with `SecurityEvent | take 20` where that table exists. Filtering: `SecurityEvent | where TimeGenerated > ago(1h) | take 50`. Sorting: `SecurityEvent | sort by TimeGenerated desc | take 50`. Aggregation: `SecurityEvent | summarize Events=count() by EventID | sort by Events desc`. If your workspace does not ingest `SecurityEvent`, use a table that your connected data source actually provides rather than treating an empty/nonexistent table as a lab failure.
+Run queries against the authorized Log Analytics/Sentinel workspace. Start with a table available in your workspace, then practice:
+```text
+<TableName>
+| take 20
+```
+Filtering:
+```text
+<TableName>
+| where TimeGenerated > ago(1h)
+| take 50
+```
+Aggregation:
+```text
+<TableName>
+| where TimeGenerated > ago(24h)
+| summarize Events=count() by bin(TimeGenerated, 1h)
+| order by TimeGenerated desc
+```
+Replace `<TableName>` with a table actually present in your workspace. The syllabus does not specify a mandatory table/schema, so the lab must not invent one.
 
 ## Module 9 — Microsoft Defender XDR
-In an appropriately licensed and authorized Defender XDR tenant, review incidents/alerts and use Advanced Hunting against your own tenant telemetry. Map observed events to the syllabus topics: Threat Detection, Defense Evasion, Execution, Credential Access, Privilege Escalation and Lateral Movement. Investigation is defensive: validate device/user/timestamp/process evidence, scope affected assets, document findings, and follow your organization's containment procedure. Availability of specific hunting tables varies with products, licensing and onboarded data.
+1. Open the authorized Defender XDR tenant.
+2. Review alerts/incidents relevant to the training dataset/environment.
+3. Use Advanced Hunting where licensed/authorized.
+4. Investigate evidence associated with Threat Detection, Defense Evasion, Execution, Credential Access, Privilege Escalation and Lateral Movement exercises.
+5. Record evidence and remediation; do not run offensive activity against systems outside the dedicated lab.
 
-## Verification
-Cloud Security Lab OS uses the real Azure CLI account context. A successful Azure verification confirms the CLI is installed, authenticated and can query the selected subscription. Sentinel/KQL/Defender exercises additionally require the corresponding Microsoft services and permissions.
+## Cleanup
+Remove only resources created for the training environment and preserve logs/evidence required by the course before cleanup.

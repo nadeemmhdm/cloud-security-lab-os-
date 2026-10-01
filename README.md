@@ -20,8 +20,22 @@ Install AWS CLI and authenticate it using an appropriate lab account/role. Insta
 
 The dashboard/server credentials are separate from cloud-provider credentials. Never commit AWS access keys, Azure tokens, service-principal secrets, private keys, or Cloudflare tokens.
 
-## Run
+## One-command setup
 Python 3.10+ is required.
+
+Windows PowerShell:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+Linux / Ubuntu / WSL:
+```bash
+bash install.sh
+```
+
+Detailed setup: `docs/SETUP.md`. Practical solutions: `docs/AWS_LABS.md` and `docs/AZURE_SENTINEL_KQL_DEFENDER_LABS.md`. Real PowerShell/Bash behavior: `docs/TERMINAL.md`.
+
+## Manual run
 
 ```bash
 python -m venv .venv
